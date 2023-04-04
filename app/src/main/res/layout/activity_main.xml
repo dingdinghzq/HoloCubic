@@ -18,6 +18,18 @@
         app:layout_constraintWidth_min="288dp"
         app:layout_constraintHeight_min="288dp" />
 
+    <com.google.android.exoplayer2.ui.PlayerView
+        android:id="@+id/videoPlayerView"
+        android:visibility="gone"
+        android:layout_width="288dp"
+        android:layout_height="288dp"
+        app:use_controller="false"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintWidth_min="288dp"
+        app:layout_constraintHeight_min="288dp" />
 
 
 </androidx.constraintlayout.widget.ConstraintLayout>
