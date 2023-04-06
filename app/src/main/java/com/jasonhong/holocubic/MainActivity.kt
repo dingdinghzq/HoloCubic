@@ -252,6 +252,7 @@ class MainActivity : AppCompatActivity() {
                 speechTextView.visibility = View.VISIBLE
                 speechTextView.text = event.result.text
                 switchBackHandler.removeCallbacks(switchBackRunnable)
+                Log.i("EnSpeech", "Recognizing..."+event.result.text)
             }
         }
 
@@ -263,6 +264,7 @@ class MainActivity : AppCompatActivity() {
                 speechTextView.visibility = View.VISIBLE
                 speechTextView.text = event.result.text
                 switchBackHandler.removeCallbacks(switchBackRunnable)
+                Log.i("CnSpeech", "Recognizing..."+event.result.text)
             }
         }
 
@@ -272,7 +274,10 @@ class MainActivity : AppCompatActivity() {
                 runOnUiThread {
                     speechTextView.text = event.result.text
                     enSpeechRecognizer.stopContinuousRecognitionAsync()
-                    chatGPTViewModel.sendMessageToChatGPT(event.result.text)
+                    if (!event.result.text.isNullOrEmpty()) {
+                        Log.i("EnSpeech", "Recognized::" + event.result.text)
+                        chatGPTViewModel.sendMessageToChatGPT(event.result.text)
+                    }
                 }
             }
         }
@@ -282,7 +287,11 @@ class MainActivity : AppCompatActivity() {
                 runOnUiThread {
                     speechTextView.text = event.result.text
                     cnSpeechRecognizer.stopContinuousRecognitionAsync()
-                    chatGPTViewModel.sendMessageToChatGPT(event.result.text)
+                    if (!event.result.text.isNullOrEmpty()) {
+                        Log.i("CnSpeech", "Recognized::" + event.result.text)
+                        chatGPTViewModel.sendMessageToChatGPT(event.result.text)
+                    }
+
                 }
             }
         }

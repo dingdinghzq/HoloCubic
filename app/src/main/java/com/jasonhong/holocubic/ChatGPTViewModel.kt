@@ -1,5 +1,6 @@
 package com.jasonhong.holocubic
 
+import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
@@ -7,23 +8,41 @@ import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.launch
 import retrofit2.Response
 
+const val MAX_MESSAGES = 10
 class ChatGPTViewModel : ViewModel() {
     private val _chatGPTReply = MutableLiveData<String>()
     val chatGPTReply: LiveData<String> = _chatGPTReply
 
     // Replace "YOUR_API_KEY" with your actual API key
     private val chatGPTService = createRetrofitInstance(AccessKeys.OpenAI)
+    private val conversationHistory = ArrayDeque<Message>()
+
+    init{
+        conversationHistory.add(Message("system", "I am ChatGPT, how can I help you?"))
+        conversationHistory.add(Message("user", "Respond with concise message, no more than 100 words"))
+    }
+
+    fun addMessageToConversation(role: String, content: String) {
+        if (conversationHistory.size >= MAX_MESSAGES) {
+            conversationHistory.removeFirst()
+        }
+        conversationHistory.add(Message(role, content))
+    }
+
 
     fun sendMessageToChatGPT(inputText: String) {
-        val messages = listOf(Message("system", "I am ChatGPT, how can I help you?"), Message("user", inputText))
+        Log.i("ChatGPT", "SendMessage::$inputText")
+        addMessageToConversation("user", inputText)
 
         viewModelScope.launch {
-            val response: Response<ChatGPTResponse> = chatGPTService.sendMessage(ChatGPTRequest("gpt-3.5-turbo", messages))
+            val response: Response<ChatGPTResponse> = chatGPTService.sendMessage(ChatGPTRequest("gpt-3.5-turbo", conversationHistory))
             if (response.isSuccessful) {
                 response.body()?.let { chatGPTResponse ->
                     val chatGPTReply = chatGPTResponse.choices.firstOrNull()?.message?.content?.trim()
                     if (chatGPTReply != null) {
-                        _chatGPTReply.postValue(chatGPTReply)
+                        addMessageToConversation("assistant", chatGPTReply)
+                        Log.i("ChatGPT", "ReceiveResponse::$chatGPTReply")
+                        _chatGPTReply.postValue(chatGPTReply!!)
                     }
                 }
             }
