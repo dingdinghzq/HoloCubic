@@ -8,6 +8,7 @@ import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
+import java.util.concurrent.TimeUnit
 
 data class ChatGPTRequest(val model: String, val messages: List<Message>)
 
@@ -56,7 +57,10 @@ fun createRetrofitInstance(apiKey: String): ChatGPTService {
         level = HttpLoggingInterceptor.Level.BODY
     }
 
+
     val httpClient = OkHttpClient.Builder()
+        .connectTimeout(60, TimeUnit.SECONDS) // Increase the connection timeout
+        .readTimeout(60, TimeUnit.SECONDS) // Increase the read timeout
         .addInterceptor(authInterceptor)
         .addInterceptor(loggingInterceptor)
         .build()

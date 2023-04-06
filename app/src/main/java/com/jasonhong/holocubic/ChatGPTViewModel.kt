@@ -16,13 +16,11 @@ class ChatGPTViewModel : ViewModel() {
     // Replace "YOUR_API_KEY" with your actual API key
     private val chatGPTService = createRetrofitInstance(AccessKeys.OpenAI)
     private val conversationHistory = ArrayDeque<Message>()
+    private val staticHead = listOf<Message>(Message("system", "I am ChatGPT, how can I help you?"),
+        Message("user", "Respond with concise messages, no more than 100 words. If the intent is to end the chat, just respond '<STOP>' "))
 
-    init{
-        conversationHistory.add(Message("system", "I am ChatGPT, how can I help you?"))
-        conversationHistory.add(Message("user", "Respond with concise message, no more than 100 words"))
-    }
 
-    fun addMessageToConversation(role: String, content: String) {
+    private fun addMessageToConversation(role: String, content: String) {
         if (conversationHistory.size >= MAX_MESSAGES) {
             conversationHistory.removeFirst()
         }
@@ -35,13 +33,18 @@ class ChatGPTViewModel : ViewModel() {
         addMessageToConversation("user", inputText)
 
         viewModelScope.launch {
-            val response: Response<ChatGPTResponse> = chatGPTService.sendMessage(ChatGPTRequest("gpt-3.5-turbo", conversationHistory))
+            val response: Response<ChatGPTResponse> = chatGPTService.sendMessage(
+                ChatGPTRequest("gpt-3.5-turbo", staticHead+conversationHistory))
             if (response.isSuccessful) {
                 response.body()?.let { chatGPTResponse ->
                     val chatGPTReply = chatGPTResponse.choices.firstOrNull()?.message?.content?.trim()
                     if (chatGPTReply != null) {
                         addMessageToConversation("assistant", chatGPTReply)
                         Log.i("ChatGPT", "ReceiveResponse::$chatGPTReply")
+                        if (chatGPTReply == "<STOP>")
+                        {
+                            conversationHistory.clear()
+                        }
                         _chatGPTReply.postValue(chatGPTReply!!)
                     }
                 }
